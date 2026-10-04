@@ -1,7 +1,7 @@
 import { BadRequestException, CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthService } from '../auth.service';
-import { Message } from 'apps/nestar-api/src/libs/types/common';
+import { Message } from 'apps/travelling-api/src/libs/types/common';
 
 
 @Injectable()

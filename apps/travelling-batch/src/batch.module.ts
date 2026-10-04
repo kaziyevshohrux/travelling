@@ -6,8 +6,8 @@ import { DatabaseModule } from './database/database.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { MongooseModule } from '@nestjs/mongoose';
-import PropertySchema from '../../nestar-api/src/schemas/Property.model';
-import MemberSchema from '../../nestar-api/src/schemas/Member.model';
+import PropertySchema from '../../travelling-api/src/schemas/Property.model';
+import MemberSchema from '../../travelling-api/src/schemas/Member.model';
 @Module({
   imports: [ConfigModule.forRoot(), DatabaseModule, ScheduleModule.forRoot(),
    MongooseModule.forFeature([{name:'Property', schema:PropertySchema}]),

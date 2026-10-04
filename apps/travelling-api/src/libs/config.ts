@@ -23,18 +23,22 @@ export const getSerialForImage = (filename: string) => {
 };
 
 
-export const availableOptions = ['propertyBarter', 'propertyRent'];
-export const availablePropertySorts = [
+export const availableProductSorts = [
 	'createdAt',
 	'updatedAt',
-	'propertyLikes',
-	'propertyViews',
-	'propertyRank',
-	'propertyPrice',
+	'productLikes',
+	'productViews',
+	'productRank',
+	'productPrice',
 ];
 
 
-export const lookupAuthMemberLiked = (memberId: T, targetRefId: string = "$_id") => {
+export const lookupAuthMemberLiked = (memberId: unknown, targetRefId: string = "$_id", likeGroup?: string) => {
+const expressions: T[] = [
+	{ $eq: ["$likeRefId", "$$localLikeRefId"] },
+	{ $eq: ["$memberId", "$$localMemberId"] },
+];
+if (likeGroup) expressions.push({ $eq: ["$likeGroup", likeGroup] });
 return {
   $lookup: {
     from: "likes",
@@ -47,7 +51,7 @@ return {
       {
       $match: {
         $expr:{
-          $and :[ {$eq: ["$likeRefId","$$localLikeRefId"] }, {$eq: ["$memberId", "$$localMemberId"]}]
+          $and: expressions
         }
       }
     },
@@ -131,20 +135,20 @@ export const lookupFollowerData = {
 	},
 };
 
-export const lookupFavorite = {
+export const lookupFavoriteProduct = {
 	$lookup: {
 		from: 'members',
-		localField: 'favoriteProperty.memberId',
+		localField: 'favoriteProduct.memberId',
 		foreignField: '_id',
-		as: 'favoriteProperty.memberData',
+		as: 'favoriteProduct.memberData',
 	},
 };
 
-export const lookupVisited = {
+export const lookupVisitedProduct = {
 	$lookup: {
 		from: 'members',
-		localField: 'visitedProperty.memberId',
+		localField: 'visitedProduct.memberId',
 		foreignField: '_id',
-		as: 'favoriteProperty.memberData',
+		as: 'visitedProduct.memberData',
 	},
 };

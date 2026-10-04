@@ -1,7 +1,5 @@
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 import * as mongoose from "mongoose";
-import { PropertyLocation, PropertyStatus, PropertyType } from "../../enums/property.enum";
-
 import type { ObjectId } from "mongoose";
 import { MemberAuthType, MemberStatus, MemberType } from "../../enums/member.enum";
 import { MeLiked } from "../like/like";
@@ -42,7 +40,7 @@ export class Member {
 	memberDesc?: string;
 
 	@Field(() => Int)
-	memberProperties?: number;
+	memberProducts?: number;
 
 	@Field(() => Int)
 	memberArticles?: number;
@@ -102,7 +100,6 @@ export class Member {
 }
 
 
-
 @ObjectType()
 export class TotalCounter {
 	@Field(() => Int, { nullable: true })
@@ -118,4 +115,3 @@ export class Members {
 	metaCounter: TotalCounter[];
 }
 
-2

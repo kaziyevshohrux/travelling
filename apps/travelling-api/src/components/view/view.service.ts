@@ -1,67 +1,59 @@
-import { InjectModel } from '@nestjs/mongoose';
-
 import { Injectable } from '@nestjs/common';
-import { ViewInput } from '../../libs/dto/view/view.input';
-import { View } from '../../libs/dto/view/view';
+import { InjectModel } from '@nestjs/mongoose';
 import { Model, ObjectId } from 'mongoose';
-import { T } from '../../libs/types/common';
-import { OrdinaryInquiry } from '../../libs/dto/property/property.input';
-import { Properties } from '../../libs/dto/property/property';
-import { lookupVisited } from '../../libs/config';
+import { lookupVisitedProduct } from '../../libs/config';
+import { Products } from '../../libs/dto/product/product';
+import { OrdinaryInquiry } from '../../libs/dto/product/product.input';
+import { View } from '../../libs/dto/view/view';
+import { ViewInput } from '../../libs/dto/view/view.input';
 import { ViewGroup } from '../../libs/enums/view.enum';
-
+import { T } from '../../libs/types/common';
 
 @Injectable()
 export class ViewService {
-    constructor(@InjectModel("View") private readonly viewModel: Model<View>){}
+	constructor(@InjectModel('View') private readonly viewModel: Model<View>) {}
 
-    public async recordView(input: ViewInput): Promise<View | null>{
-        const viewExist = await this.checkViewExtence(input);
-        if(!viewExist) {
-            console.log("-New View Insert-");
-            return await this.viewModel.create(input)
-        }
-       return null;
-    }
+	public async recordView(input: ViewInput): Promise<View | null> {
+		const viewExist = await this.checkViewExistence(input);
+		return viewExist ? null : this.viewModel.create(input);
+	}
 
-    private async checkViewExtence(input: ViewInput): Promise<View | null>{ //privatega sabab bu method faqat shu klass ichida ishga tushadi
-        const {memberId, viewRefId} = input;
-        const search: T = {memberId: memberId, viewRefId: viewRefId}
-        return await this.viewModel.findOne(search).exec();
-    }
+	private async checkViewExistence(input: ViewInput): Promise<View | null> {
+		const { memberId, viewRefId, viewGroup } = input;
+		return this.viewModel.findOne({ memberId, viewRefId, viewGroup }).exec();
+	}
 
+	public async getVisitedProducts(memberId: ObjectId, input: OrdinaryInquiry): Promise<Products> {
+		const data: T = await this.viewModel
+			.aggregate([
+				{ $match: { viewGroup: ViewGroup.PRODUCT, memberId } },
+				{ $sort: { updatedAt: -1 } },
+				{
+					$lookup: {
+						from: 'products',
+						localField: 'viewRefId',
+						foreignField: '_id',
+						as: 'visitedProduct',
+					},
+				},
+				{ $unwind: '$visitedProduct' },
+				{
+					$facet: {
+						list: [
+							{ $skip: (input.page - 1) * input.limit },
+							{ $limit: input.limit },
+							lookupVisitedProduct,
+							{ $unwind: '$visitedProduct.memberData' },
+						],
+						metaCounter: [{ $count: 'total' }],
+					},
+				},
+			])
+			.exec();
 
-    public async getVisitedProperties(memberId: ObjectId, input: OrdinaryInquiry): Promise<Properties>{
-            const { page , limit} = input
-            const match : T = {viewGroup: ViewGroup.PROPERTY , memberId: memberId}
-            const data:T = await this.viewModel.aggregate([
-                {$match: match},
-                {$sort: {updateAt: -1}},
-                {
-                    $lookup: {
-                        from: "properties",
-                        localField: "viewRefId",
-                        foreignField:"_id",
-                        as: "visitedProperty",
-    
-                    },
-                },
-                {$unwind: "$visitedProperty"},
-                {
-                    $facet:{
-                        list: [
-                             {$skip: (page-1) *limit},
-                             {$limit: limit},lookupVisited,
-                             {$unwind: "$visitedProperty"}, 
-                        ],
-                        metaCounter: [{$count: "total"}],
-                    },
-                },
-                
-            ])
-            .exec()
-            const result : Properties = { list:[], metaCounter: data[0].metaCounter}
-            result.list = data[0].list.map((ele) => ele.visitedProperty)
-            return result
-        }
+		return {
+			list: data[0].list.map((element) => element.visitedProduct),
+			metaCounter: data[0].metaCounter,
+		};
+	}
 }

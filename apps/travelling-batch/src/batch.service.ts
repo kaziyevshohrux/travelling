@@ -1,25 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Property } from '../../travelling-api/src/libs/dto/property/property';
+import { Product } from '../../travelling-api/src/libs/dto/product/product';
 import { Member } from '../../travelling-api/src/libs/dto/member/member';
-import { PropertyStatus } from '../../travelling-api/src/libs/enums/property.enum';
+import { ProductStatus } from '../../travelling-api/src/libs/enums/product.enum';
 import { MemberStatus, MemberType } from '../../travelling-api/src/libs/enums/member.enum';
 
 @Injectable()
 export class BatchService {
   constructor(
-    @InjectModel('Property') private readonly propertyModel: Model<Property>,
+    @InjectModel('Product') private readonly productModel: Model<Product>,
     @InjectModel('Member') private readonly memberModel: Model<Member>,
   ) {}
 
-  public async batchRollback(): Promise<void> { //bu JobSchedule batchTopProperties va batchTopAgents dan oldin ishga tushadi
-    await this.propertyModel
+  public async batchRollback(): Promise<void> {
+    await this.productModel
       .updateMany( //update static methodi 3 ta parametr qabul qiladi: filter, update, options
         {
-          propertyStatus: PropertyStatus.ACTIVE,
+          productStatus: ProductStatus.ACTIVE,
         },
-        { propertyRank: 0 },
+        { productRank: 0 },
       )
       .exec();
 
@@ -34,18 +34,18 @@ export class BatchService {
       .exec();
   }
 
- public async batchTopProperties(): Promise<void> {
-    const properties: Property[] = await this.propertyModel
+ public async batchTopProducts(): Promise<void> {
+    const products: Product[] = await this.productModel
       .find({
-        propertyStatus: PropertyStatus.ACTIVE,
-        propertyRank: 0,
+        productStatus: ProductStatus.ACTIVE,
+        productRank: 0,
       })
       .exec();
 
-    const promisedList = properties.map(async (ele: Property) => {
-      const { _id, propertyLikes, propertyViews } = ele;
-      const rank = propertyLikes * 2 + propertyViews * 1;
-      return await this.propertyModel.findByIdAndUpdate(_id, { propertyRank: rank });
+    const promisedList = products.map(async (ele: Product) => {
+      const { _id, productLikes, productViews } = ele;
+      const rank = productLikes * 2 + productViews * 1;
+      return await this.productModel.findByIdAndUpdate(_id, { productRank: rank });
     });
 
     await Promise.all(promisedList);
@@ -61,8 +61,8 @@ export class BatchService {
       .exec();
 
     const promisedList = agents.map(async (ele: Member) => { //promisedList bu pending object bolib quyida promise all orqali har bir jarayonni ishga tushirishni amalga oshirdik
-      const { _id, memberProperties, memberLikes, memberArticles, memberViews } = ele;
-      const rank = (memberProperties ?? 0) * 5 + (memberArticles ?? 0) * 3 + (memberLikes ?? 0) * 2 + memberViews * 1;
+      const { _id, memberProducts, memberLikes, memberArticles, memberViews } = ele;
+      const rank = (memberProducts ?? 0) * 5 + (memberArticles ?? 0) * 3 + (memberLikes ?? 0) * 2 + memberViews * 1;
       return await this.memberModel.findByIdAndUpdate(_id, { memberRank: rank });
     });
 

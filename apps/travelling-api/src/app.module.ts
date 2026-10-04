@@ -7,7 +7,6 @@ import { ApolloDriver } from '@nestjs/apollo';
 import { AppResolver } from './app.resolver';
 import { DatabaseModule } from './database/database.module';
 import { ComponentModule } from './components/components.module';
-import { PropertyModule } from './components/property/property.module';
 import { SocketModule } from './socket/socket.module';
 
 @Module({

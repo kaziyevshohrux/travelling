@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { MemberService } from '../member/member.service';
-import { PropertyService } from '../property/property.service';
+import { ProductService } from '../product/product.service';
 import { BoardArticleService } from '../board-article/board-article.service';
 import { Model, ObjectId } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -19,7 +19,7 @@ export class CommentService {
  constructor(
   @InjectModel('Comment') private readonly commentModel: Model<Comment>,
   private readonly memberService: MemberService,
-  private readonly propertyService: PropertyService,
+  private readonly productService: ProductService,
   private readonly boardArticleService: BoardArticleService,
  ) {}
 
@@ -35,10 +35,10 @@ export class CommentService {
   }
 
   switch (input.commentGroup) {
-   case CommentGroup.PROPERTY:
-    await this.propertyService.propertyStatsEditor({
+   case CommentGroup.PRODUCT:
+    await this.productService.productStatsEditor({
      _id: input.commentRefId,
-     targetKey: 'propertyComments',
+     targetKey: 'productComments',
      modifier: 1,
     });
     break;
@@ -79,7 +79,7 @@ return result;
   return result;
  }
 
-public async getComments(memberId: ObjectId, input: CommentsInquiry): Promise<Comments> { //property yoki memberga yozilgan umumiy commentlar
+public async getComments(memberId: ObjectId, input: CommentsInquiry): Promise<Comments> {
   const { commentRefId } = input.search;
   const match: T = { commentRefId: commentRefId, commentStatus: CommentStatus.ACTIVE };
   const sort: T = { [input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC };
@@ -109,7 +109,6 @@ public async getComments(memberId: ObjectId, input: CommentsInquiry): Promise<Co
  //ADMIN
 
 	public async removeCommentByAdmin(input: ObjectId): Promise<Comment> {
-		//comment article yokiproperty kabi muhim malumot emas shu sababli uni statusini delete ekanligini tekshirishga hojat yoq
 		const result = await this.commentModel.findByIdAndDelete(input).exec();
 		if (!result) throw new InternalServerErrorException(Message.REMOVE_FAILED);
 		return result;

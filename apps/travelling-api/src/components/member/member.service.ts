@@ -176,7 +176,7 @@ public async likeTargetMember(memberId: ObjectId, likeRefId: ObjectId): Promise<
 						//bir aggregate ichida bir nechta query natijalarini olish imkonini beradi
 						list: [{ $skip: (input.page - 1) * input.limit },
 							 { $limit: input.limit },
-							 lookupAuthMemberLiked(memberId)
+							 lookupAuthMemberLiked(memberId, '$_id', LikeGroup.MEMBER)
 							], //talab etilgan agentlar royxatini olib beradi
 
 						metaCounter: [{ $count: 'total' }], //agentlar umumiy sonini hisoblaymiz
@@ -241,7 +241,7 @@ public async likeTargetMember(memberId: ObjectId, likeRefId: ObjectId): Promise<
 		const { _id, targetKey, modifier } = input;
 		return (await this.memberModel
 			.findOneAndUpdate({ _id }, { $inc: { [targetKey]: modifier } }, { new: true })
-			.exec()) as Member; //masalan {memberProperties: 1}
+			.exec()) as Member;
 	}
 
 

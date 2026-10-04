@@ -30,6 +30,8 @@ Use those files as the source of truth for AI Agent related migration history, a
 
 - Product ownership continues to use `MemberType.AGENT` unless a later migration explicitly changes it.
 
+- The GraphQL catalog is a breaking product-only contract. Do not add deprecated Property aliases.
+
 - Product enum values are:
 
   - `productType`:
@@ -60,6 +62,15 @@ Use those files as the source of truth for AI Agent related migration history, a
     `INACTIVE`,
     `SOLD_OUT`,
     `DELETE`
+
+  - `productBookingType`:
+    `INSTANT`,
+    `REQUEST`
+
+  - `productPriceUnit`:
+    `PER_PERSON`,
+    `PER_NIGHT`,
+    `PER_BOOKING`
 
 ## Workflow
 

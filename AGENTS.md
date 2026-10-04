@@ -23,13 +23,43 @@ Use those files as the source of truth for AI Agent related migration history, a
 ## Domain Rules
 
 - Use Travelling/product terminology for the main catalog entity.
+
 - Do not reintroduce property or real-estate fields.
+
 - Keep `MemberType.USER`, `MemberType.AGENT` and `MemberType.ADMIN` unchanged.
+
 - Product ownership continues to use `MemberType.AGENT` unless a later migration explicitly changes it.
+
 - Product enum values are:
-  - `productType`: `PET`, `FOOD`, `TOY`, `ACCESSORY`
-  - `productSpecies`: `DOG`, `CAT`, `BIRD`, `FISH`
-  - `productGender`: `MALE`, `FEMALE`
+
+  - `productType`:
+    `HOTEL`,
+    `TOUR`,
+    `ACTIVITY`,
+    `TRANSPORT`,
+    `RESTAURANT`
+
+  - `productCategory`:
+    `ADVENTURE`,
+    `CULTURE`,
+    `FOOD`,
+    `NATURE`,
+    `RELAXATION`,
+    `FAMILY`
+
+  - `productRegion`:
+    `SEOUL`,
+    `BUSAN`,
+    `JEJU`,
+    `INCHEON`,
+    `DAEGU`,
+    `OTHER`
+
+  - `productStatus`:
+    `ACTIVE`,
+    `INACTIVE`,
+    `SOLD_OUT`,
+    `DELETE`
 
 ## Workflow
 

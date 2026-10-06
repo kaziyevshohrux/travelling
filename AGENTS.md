@@ -1,10 +1,10 @@
 # Travelling Backend Agent Instruction
 
-travelling is a NestJS GraphQL monorepo migrated from Real estate platform into a petshop platform
+travelling is a NestJS GraphQL monorepo migrated from a real-estate platform into a travel platform.
 
 ## Read First
 
-Before changing code, read the current AI handoff docs:
+Before changing code, read the current AI handoff docs. The files under `docs/ai` are the canonical source of truth; similarly named files directly under `docs` are navigation pointers only.
 
 - `docs/ai/BACKEND_MIGRATION.md`
 - `docs/ai/DECISIONS.md`

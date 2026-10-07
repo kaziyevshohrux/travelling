@@ -8,12 +8,14 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { WithoutGuard } from '../auth/guards/without.guard';
 import { shapeIntoMongoObjectId } from '../../libs/config';
 import { MemberType } from '../../libs/enums/member.enum';
-import { Product, Products } from '../../libs/dto/product/product';
+import { Product, ProductPriceQuote, Products } from '../../libs/dto/product/product';
 import {
 	AgentProductsInquiry,
 	AllProductsInquiry,
 	OrdinaryInquiry,
+	ProductAvailabilityUpdateInput,
 	ProductInput,
+	ProductQuoteInput,
 	ProductsInquiry,
 } from '../../libs/dto/product/product.input';
 import { ProductUpdate } from '../../libs/dto/product/product.update';
@@ -43,6 +45,13 @@ export class ProductResolver {
 		return this.productService.getProduct(memberId, shapeIntoMongoObjectId(input));
 	}
 
+	@UseGuards(WithoutGuard)
+	@Query(() => ProductPriceQuote)
+	public async getProductPriceQuote(@Args('input') input: ProductQuoteInput): Promise<ProductPriceQuote> {
+		input.productId = shapeIntoMongoObjectId(input.productId);
+		return this.productService.getProductPriceQuote(input);
+	}
+
 	@Roles(MemberType.AGENT)
 	@UseGuards(RolesGuard)
 	@Mutation(() => Product)
@@ -52,6 +61,17 @@ export class ProductResolver {
 	): Promise<Product> {
 		input._id = shapeIntoMongoObjectId(input._id);
 		return this.productService.updateProduct(memberId, input);
+	}
+
+	@Roles(MemberType.AGENT)
+	@UseGuards(RolesGuard)
+	@Mutation(() => Product)
+	public async updateProductAvailability(
+		@Args('input') input: ProductAvailabilityUpdateInput,
+		@AuthMember('_id') memberId: ObjectId,
+	): Promise<Product> {
+		input.productId = shapeIntoMongoObjectId(input.productId);
+		return this.productService.updateProductAvailability(memberId, input);
 	}
 
 	@UseGuards(WithoutGuard)

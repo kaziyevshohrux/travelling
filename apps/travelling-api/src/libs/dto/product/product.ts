@@ -13,6 +13,78 @@ import { Member, TotalCounter } from '../member/member';
 import { MeLiked } from '../like/like';
 
 @ObjectType()
+export class ProductAvailability {
+	@Field(() => Date)
+	availabilityDate: Date;
+
+	@Field(() => Date, { nullable: true })
+	availabilityEnd?: Date;
+
+	@Field(() => Boolean, { nullable: true })
+	isBlocked?: boolean;
+
+	@Field(() => Int, { nullable: true })
+	capacityRooms?: number;
+
+	@Field(() => Int, { nullable: true })
+	remainingRooms?: number;
+
+	@Field(() => Int, { nullable: true })
+	capacitySeats?: number;
+
+	@Field(() => Int, { nullable: true })
+	remainingSeats?: number;
+}
+
+@ObjectType()
+export class ProductPriceBreakdown {
+	@Field(() => String)
+	label: string;
+
+	@Field(() => Float)
+	unitPrice: number;
+
+	@Field(() => Int)
+	quantity: number;
+
+	@Field(() => Float)
+	amount: number;
+}
+
+@ObjectType()
+export class ProductPriceQuote {
+	@Field(() => String)
+	productId: ObjectId;
+
+	@Field(() => String)
+	currency: string;
+
+	@Field(() => ProductPriceUnit)
+	priceUnit: ProductPriceUnit;
+
+	@Field(() => Float)
+	unitPrice: number;
+
+	@Field(() => Int)
+	quantity: number;
+
+	@Field(() => Float)
+	subtotal: number;
+
+	@Field(() => Float)
+	total: number;
+
+	@Field(() => Boolean)
+	inventoryAvailable: boolean;
+
+	@Field(() => [ProductPriceBreakdown])
+	breakdown: ProductPriceBreakdown[];
+
+	@Field(() => String)
+	disclaimer: string;
+}
+
+@ObjectType()
 export class Product {
 	@Field(() => String)
 	_id: ObjectId;
@@ -25,6 +97,12 @@ export class Product {
 
 	@Field(() => ProductCategory)
 	productCategory: ProductCategory;
+
+	@Field(() => [ProductCategory], { nullable: true })
+	productCategories?: ProductCategory[];
+
+	@Field(() => Boolean, { nullable: true })
+	productFamilyFriendly?: boolean;
 
 	@Field(() => ProductRegion)
 	productRegion: ProductRegion;
@@ -67,6 +145,18 @@ export class Product {
 
 	@Field(() => JSONObjectScalar, { nullable: true })
 	productDetails?: Record<string, unknown>;
+
+	@Field(() => Int, { nullable: true })
+	productMaxGuests?: number;
+
+	@Field(() => Int, { nullable: true })
+	productMinChildAge?: number;
+
+	@Field(() => Int, { nullable: true })
+	productMaxChildAge?: number;
+
+	@Field(() => [ProductAvailability], { nullable: true })
+	productAvailability?: ProductAvailability[];
 
 	@Field(() => String)
 	memberId: ObjectId;

@@ -4,6 +4,7 @@ import { Model, ObjectId } from 'mongoose';
 import { lookupVisitedProduct } from '../../libs/config';
 import { Products } from '../../libs/dto/product/product';
 import { OrdinaryInquiry } from '../../libs/dto/product/product.input';
+import { ProductStatus } from '../../libs/enums/product.enum';
 import { View } from '../../libs/dto/view/view';
 import { ViewInput } from '../../libs/dto/view/view.input';
 import { ViewGroup } from '../../libs/enums/view.enum';
@@ -37,6 +38,7 @@ export class ViewService {
 					},
 				},
 				{ $unwind: '$visitedProduct' },
+				{ $match: { 'visitedProduct.productStatus': ProductStatus.ACTIVE } },
 				{
 					$facet: {
 						list: [

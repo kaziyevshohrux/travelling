@@ -4,6 +4,9 @@ export enum ProductType {
 	HOTEL = 'HOTEL',
 	TOUR = 'TOUR',
 	ACTIVITY = 'ACTIVITY',
+	TRANSFER = 'TRANSFER',
+	// Kept for stored-data and client compatibility. These values are not
+	// automatically reclassified as TRANSFER or another product type.
 	TRANSPORT = 'TRANSPORT',
 	RESTAURANT = 'RESTAURANT',
 }
@@ -14,6 +17,9 @@ export enum ProductCategory {
 	CULTURE = 'CULTURE',
 	FOOD = 'FOOD',
 	NATURE = 'NATURE',
+	WELLNESS = 'WELLNESS',
+	CITY_EXPLORATION = 'CITY_EXPLORATION',
+	// Kept until an explicit, reviewed data migration is run.
 	RELAXATION = 'RELAXATION',
 	FAMILY = 'FAMILY',
 }

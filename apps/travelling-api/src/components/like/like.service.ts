@@ -7,6 +7,7 @@ import { LikeInput } from '../../libs/dto/like/like.input';
 import { OrdinaryInquiry } from '../../libs/dto/product/product.input';
 import { Products } from '../../libs/dto/product/product';
 import { LikeGroup } from '../../libs/enums/like.enum';
+import { ProductStatus } from '../../libs/enums/product.enum';
 import { Message, T } from '../../libs/types/common';
 
 @Injectable()
@@ -53,6 +54,7 @@ export class LikeService {
 					},
 				},
 				{ $unwind: '$favoriteProduct' },
+				{ $match: { 'favoriteProduct.productStatus': ProductStatus.ACTIVE } },
 				{
 					$facet: {
 						list: [

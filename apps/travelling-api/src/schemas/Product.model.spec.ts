@@ -16,6 +16,15 @@ describe('product persistence contract', () => {
 		expect(ProductSchema.path('productPrice').options.min).toBe(0);
 		expect(ProductSchema.path('productDetails').instance).toBe('Mixed');
 		expect(ProductSchema.path('productRegion').options.required).toBe(true);
+		expect(ProductSchema.path('productCategories')).toBeDefined();
+		expect(ProductSchema.path('productFamilyFriendly').getDefault({})).toBe(false);
+		expect(ProductSchema.path('productMaxGuests').options.min).toBe(1);
+		expect(ProductSchema.path('productAvailability')).toBeDefined();
+		const availabilitySchema = ProductSchema.path('productAvailability').schema;
+		expect(availabilitySchema.path('availabilityEnd')).toBeDefined();
+		expect(availabilitySchema.path('isBlocked').getDefault({})).toBe(false);
+		expect(availabilitySchema.path('capacityRooms').options.min).toBe(0);
+		expect(availabilitySchema.path('capacitySeats').options.min).toBe(0);
 	});
 
 	it('rewires member, notification, and shared groups to product terminology', () => {

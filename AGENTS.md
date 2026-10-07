@@ -38,6 +38,7 @@ Use those files as the source of truth for AI Agent related migration history, a
     `HOTEL`,
     `TOUR`,
     `ACTIVITY`,
+    `TRANSFER`,
     `TRANSPORT`,
     `RESTAURANT`
 
@@ -46,8 +47,12 @@ Use those files as the source of truth for AI Agent related migration history, a
     `CULTURE`,
     `FOOD`,
     `NATURE`,
+    `WELLNESS`,
+    `CITY_EXPLORATION`,
     `RELAXATION`,
     `FAMILY`
+
+  `TRANSFER`, `WELLNESS`, and `CITY_EXPLORATION` are the preferred travel-search values. `TRANSPORT`, `RESTAURANT`, `RELAXATION`, and `FAMILY` remain compatibility values until an explicit reviewed data migration; do not silently remap them.
 
   - `productRegion`:
     `SEOUL`,

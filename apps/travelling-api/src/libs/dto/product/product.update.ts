@@ -1,5 +1,17 @@
-import { Field, Float, InputType } from '@nestjs/graphql';
-import { IsObject, IsOptional, IsString, Length, Matches, Min } from 'class-validator';
+import { Field, Float, InputType, Int } from '@nestjs/graphql';
+import { Type } from 'class-transformer';
+import {
+	IsArray,
+	IsBoolean,
+	IsInt,
+	IsObject,
+	IsOptional,
+	IsString,
+	Length,
+	Matches,
+	Min,
+	ValidateNested,
+} from 'class-validator';
 import type { ObjectId } from 'mongoose';
 import {
 	ProductBookingType,
@@ -10,6 +22,7 @@ import {
 	ProductType,
 } from '../../enums/product.enum';
 import { JSONObjectScalar } from '../../scalars/json-object.scalar';
+import { ProductAvailabilityInput } from './product.input';
 
 @InputType()
 export class ProductUpdate {
@@ -27,6 +40,16 @@ export class ProductUpdate {
 	@IsOptional()
 	@Field(() => ProductCategory, { nullable: true })
 	productCategory?: ProductCategory;
+
+	@IsOptional()
+	@IsArray()
+	@Field(() => [ProductCategory], { nullable: true })
+	productCategories?: ProductCategory[];
+
+	@IsOptional()
+	@IsBoolean()
+	@Field(() => Boolean, { nullable: true })
+	productFamilyFriendly?: boolean;
 
 	@IsOptional()
 	@Field(() => ProductRegion, { nullable: true })
@@ -74,6 +97,30 @@ export class ProductUpdate {
 	@IsObject()
 	@Field(() => JSONObjectScalar, { nullable: true })
 	productDetails?: Record<string, unknown>;
+
+	@IsOptional()
+	@IsInt()
+	@Min(1)
+	@Field(() => Int, { nullable: true })
+	productMaxGuests?: number;
+
+	@IsOptional()
+	@IsInt()
+	@Min(0)
+	@Field(() => Int, { nullable: true })
+	productMinChildAge?: number;
+
+	@IsOptional()
+	@IsInt()
+	@Min(0)
+	@Field(() => Int, { nullable: true })
+	productMaxChildAge?: number;
+
+	@IsOptional()
+	@ValidateNested({ each: true })
+	@Type(() => ProductAvailabilityInput)
+	@Field(() => [ProductAvailabilityInput], { nullable: true })
+	productAvailability?: ProductAvailabilityInput[];
 
 	deletedAt?: Date;
 }

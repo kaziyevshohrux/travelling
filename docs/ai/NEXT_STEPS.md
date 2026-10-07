@@ -11,7 +11,13 @@
 
 ## Client Cutover
 
-Update frontend documents and generated types to the product-only GraphQL contract. There are no compatibility aliases for the retired catalog operations.
+Regenerate frontend GraphQL types for the additive travel-search fields and enum values. Send ISO-8601 UTC dates, derive child count from `childrenAges`, send `rooms` only with HOTEL, and continue displaying `productPrice` as a base price/unit rather than a calculated trip total. Existing searches remain valid when all new filters are omitted.
+
+## Availability Evolution
+
+1. Introduce a separate booking/hold boundary with atomic seat/room decrements and idempotency before accepting reservations.
+2. Decide whether non-transfer transport and restaurant products receive new target types before migrating compatibility enum values.
+3. Add explicit taxes, fees, discounts, child pricing, and cancellation rules only after business approval; the current quote intentionally excludes them.
 
 ## Separate Cleanup
 

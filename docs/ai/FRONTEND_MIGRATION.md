@@ -1,103 +1,49 @@
-# Frontend Migration Plan: Nestar to Travelling
+﻿# Frontend Migration: Nestar to Travelling
 
-## Goal
+## Current Contract
 
-Migrate the Next.js frontend identity and UI terminology to travelling while remaining compatible with the current backend GraphQL API. The backend still exposes real-estate-oriented `Property` and `Agent` APIs, so the frontend should use adapters and UI copy first, then plan backend API renames later.
+The backend catalog is product-only. The frontend must call `Product` GraphQL types and operations directly; no `Property` aliases or Property-to-Product adapter layer exists.
 
-## Step-by-Step Plan
+Customer-facing terminology is **Listings** and **Providers**. Backend member contracts intentionally retain `MemberType.AGENT`, `getAgents`, `AgentInquiry`, and `AgentProductsInquiry`.
 
-| Step | Task | Outcome |
-| --- | --- | --- |
-| 1 | Locate the Next.js frontend repository and confirm its package manager, app router/pages router structure, GraphQL client, and environment files. | Clear migration surface before edits. |
-| 2 | Rename visible app branding from Nestar to travelling in metadata, navigation, layout, footer, auth screens, errors, and empty states. | User-facing identity becomes travelling. |
-| 3 | Update assets and static files: logo, favicon, manifest, Open Graph metadata, app icons, and any Nestar images. | Browser and share previews use travelling branding. |
-| 4 | Add a frontend terminology adapter layer that maps travelling UI concepts to current backend GraphQL fields. | UI can say "product" while GraphQL still sends/receives `Property`. |
-| 5 | Rename page titles, component labels, filter labels, and CTA text from real-estate terminology to petshop terminology. | Product experience starts to feel like a petshop. |
-| 6 | Keep current GraphQL documents operational and avoid backend-breaking query changes during Phase 1. | Existing backend remains compatible. |
-| 7 | Add tests or smoke checks for critical pages: home/catalog, detail page, seller profile, favorites, visited items, auth, upload flow. | Catch copy/adaptor regressions. |
-| 8 | Document all frontend aliases so future backend `Property` to `Product` migration can be mechanical. | Reduces future migration confusion. |
+## Implemented Frontend State
 
-## Page and Component Mapping
+Completed on October 6, 2026:
 
-| Nestar Frontend Concept | travelling UI Concept | Backend Compatibility Notes |
-| --- | --- | --- |
-| Home/real-estate landing | travelling storefront or catalog entry | Can still query featured `Property` records. |
-| Property list page | Product/catalog list page | UI label changes; data source remains `getProperties`. |
-| Property detail page | Product detail/listing detail page | UI label changes; data source remains `getProperty`. |
-| Create property page | Create product/listing page | UI label changes; mutation remains `createProperty`. |
-| My properties | My products/listings | Query remains `getAgentProperties`. |
-| Agent profile/list | Seller/vendor profile/list | Query remains `getAgents`; role remains `MemberType.AGENT`. |
-| Favorites | Favorites or wishlist | Query remains `getFavorites`; backend returns `Properties`. |
-| Visited properties | Recently viewed products | Query remains `getVisited`. |
-| Board/community | Community/articles | Behavior can remain unchanged. |
-| Comments/likes/views | Reviews/comments, likes, views | Keep current backend behavior until product review model is defined. |
+- Restored the Pages Router shell, public assets, and SCSS organization from the revision before `e7bd016`.
+- Added the backend's exact product enums, inputs, updates, inquiries, range types, and response models.
+- Replaced property GraphQL operations and selections with product-native operations and `productId` arguments.
+- Migrated catalog, detail, favorites, visited, owner, provider, and administration flows to products.
+- Changed member counters and shared interaction groups to `memberProducts` and `PRODUCT`.
+- Preserved Apollo upload/auth/cache/error behavior and kept raw chat WebSocket traffic separate from Apollo HTTP traffic.
+- Added canonical `/products`, `/providers`, and `/_admin/products` routes with permanent legacy redirects.
+- Added legacy My Page category and `propertyId` normalization only at compatibility boundaries.
+- Rebranded metadata, navigation, footer, copy, wordmark, favicon, README, and locale resources to Travelling.
+- Removed the inactive Property type layer and unreferenced real-estate-only assets after reference checks.
 
-## GraphQL Query and Mutation Rename Plan
+## Runtime Configuration
 
-### Phase 1: Compatibility First
+```env
+REACT_APP_API_URL=http://localhost:3007
+REACT_APP_API_GRAPHQL_URL=http://localhost:3007/graphql
+REACT_APP_CHAT_WS_URL=ws://localhost:3007
+```
 
-Do not rename GraphQL operation documents against the backend yet. Use frontend aliases or mapper names.
+The chat URL is for the existing raw WebSocket client. The backend does not expose GraphQL subscriptions, so Apollo uses HTTP/upload links only.
 
-| Backend Operation | Frontend Alias | Status |
-| --- | --- | --- |
-| `getProperties` | `getProducts` or `getCatalogItems` | Frontend alias only. |
-| `getProperty` | `getProduct` or `getListing` | Frontend alias only. |
-| `createProperty` | `createProductListing` | Frontend alias only. |
-| `updateProperty` | `updateProductListing` | Frontend alias only. |
-| `getAgentProperties` | `getSellerProducts` | Frontend alias only. |
-| `likeTargetProperty` | `likeTargetProduct` | Frontend alias only. |
-| `getAgents` | `getSellers` | Frontend alias only. |
+## Compatibility Boundaries
 
-### Phase 2: Frontend Adapter Layer
+- `/property/:path*` permanently redirects to `/products/:path*`.
+- `/agent/:path*` permanently redirects to `/providers/:path*`.
+- `/_admin/properties/:path*` permanently redirects to `/_admin/products/:path*`.
+- My Page accepts `addProperty` and `myProperties`, then normalizes them to `addProduct` and `myProducts`.
+- Listing edit links temporarily accept `propertyId`, then normalize it to `productId`.
 
-Create frontend model mappers without changing backend calls:
+Do not reintroduce Property GraphQL documents, adapters, legacy catalog fields, or GraphQL subscription splitting.
 
-| Backend Field | Frontend Model Field |
-| --- | --- |
-| `propertyTitle` | `productTitle` or `name` |
-| `propertyPrice` | `price` |
-| `propertyImages` | `images` |
-| `propertyDesc` | `description` |
-| `propertyLikes` | `likes` |
-| `propertyViews` | `views` |
-| `propertyComments` | `comments` |
-| `memberData` | `seller` |
+## Validation
 
-Fields such as `propertySquare`, `propertyBeds`, `propertyRooms`, `propertyRent`, `propertyBarter`, and `constructedAt` should be hidden or clearly marked for future backend domain cleanup because they do not map cleanly to petshop catalog behavior.
-
-### Phase 3: Backend API Rename Later
-
-Only after backend approval, introduce product-native GraphQL types and operations:
-
-| Current Backend Name | Future Candidate |
-| --- | --- |
-| `Property` | `Product` or `ProductListing` |
-| `Properties` | `Products` |
-| `PropertyInput` | `ProductInput` |
-| `PropertyUpdate` | `ProductUpdate` |
-| `PropertyType` | `ProductCategory` |
-| `PropertyStatus` | `ProductStatus` |
-| `PropertyLocation` | `ShippingRegion` or remove if not needed |
-| `AgentPropertiesInquiry` | `SellerProductsInquiry` |
-
-## UI Terminology Changes
-
-| Current Term | travelling Term | Notes |
-| --- | --- | --- |
-| Nestar | travelling | Brand rename complete on backend; frontend should match. |
-| Property | Product or listing | Prefer "product" for catalog UI, "listing" for seller workflows. |
-| Properties | Catalog or products | Use "catalog" for browse pages. |
-| Agent | Seller or vendor | Prefer "seller" for customer-facing UI. |
-| Property type | Category | Future backend mapping needed. |
-| Property location | Region or shipping area | Avoid if not needed in petshop UI. |
-| Beds/rooms/square | Remove or replace with product specs | No clean petshop equivalent. |
-| Rent/barter | Availability, sale type, or remove | Needs product decision. |
-| Constructed at | Listed at, manufactured at, or remove | Needs domain decision. |
-| Sold | Sold out or unavailable | Future product status mapping. |
-
-## Compatibility Rules
-
-- Do not change backend GraphQL documents in a way that requires backend schema changes during the frontend Phase 1 migration.
-- Prefer frontend aliases, mapper functions, and UI copy changes.
-- Keep a migration glossary near GraphQL documents so future backend renames are traceable.
-- Treat any real `Property` to `Product` backend rename as a separate breaking-change project.
+- `yarn tsc --noEmit --incremental false`: passed.
+- `yarn build`: passed; all canonical product/provider/admin pages were generated.
+- Live `getProducts` smoke query against `http://localhost:3007/graphql`: passed with the product-only selection set.
+- Authenticated mutation and role-based UI smoke tests remain dependent on test accounts and seeded product data; see `FRONTEND_UI_DEBT.md`.

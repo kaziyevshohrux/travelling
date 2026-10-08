@@ -101,6 +101,54 @@ export class Member {
 
 
 @ObjectType()
+export class MyProfile {
+	@Field(() => String)
+	_id: ObjectId;
+
+	@Field(() => MemberType)
+	memberType: MemberType;
+
+	@Field(() => MemberAuthType)
+	memberAuthType: MemberAuthType;
+
+	@Field(() => String)
+	memberPhone: string;
+
+	@Field(() => String)
+	memberNick: string;
+
+	@Field(() => String, { nullable: true })
+	memberFullName?: string;
+
+	@Field(() => String, { nullable: true })
+	memberImage?: string;
+
+	@Field(() => String, { nullable: true })
+	memberAddress?: string;
+
+	@Field(() => String, { nullable: true })
+	memberDesc?: string;
+
+	@Field(() => Int)
+	memberProducts: number;
+
+	@Field(() => Int)
+	memberArticles: number;
+
+	@Field(() => Int)
+	memberFollowers: number;
+
+	@Field(() => Int)
+	memberFollowings: number;
+
+	@Field(() => Date)
+	createdAt: Date;
+
+	@Field(() => Date)
+	updatedAt: Date;
+}
+
+@ObjectType()
 export class TotalCounter {
 	@Field(() => Int, { nullable: true })
 	total: number;

@@ -1,12 +1,12 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, ObjectId } from 'mongoose';
-import { Member, Members } from '../../libs/dto/member/member';
+import { ClientSession, Model, ObjectId } from 'mongoose';
+import { Member, Members, MyProfile } from '../../libs/dto/member/member';
 import { AgentInquiry, LoginInput, MemberInput, MembersInquiry } from '../../libs/dto/member/member.input';
 import { MemberStatus, MemberType } from '../../libs/enums/member.enum';
 import { Direction, Message, StatisticModifier, T } from '../../libs/types/common';
 import { AuthService } from '../auth/auth.service';
-import { MemberUpdate } from '../../libs/dto/member/member.update';
+import { ChangeMyPasswordInput, MemberUpdate, MyProfileUpdate } from '../../libs/dto/member/member.update';
 import { ViewInput } from '../../libs/dto/view/view.input';
 import { ViewGroup } from '../../libs/enums/view.enum';
 import { ViewService } from '../view/view.service';
@@ -76,14 +76,71 @@ export class MemberService {
 
 // update member inf
 
-     public async updateMember(memberId: ObjectId, input: MemberUpdate): Promise<Member> {
+    public async getMyProfile(memberId: ObjectId): Promise<MyProfile> {
 		const result = await this.memberModel
-			.findOneAndUpdate({ _id: memberId, memberStatus: MemberStatus.ACTIVE }, input, { new: true })
+			.findOne({ _id: memberId, memberStatus: MemberStatus.ACTIVE })
+			.select(this.myProfileProjection())
+			.lean()
 			.exec();
-		if (!result) throw new InternalServerErrorException(Message.UPLOAD_FAILED);
-		result.accessToken = await this.authService.createToken(result);
-		return result;
+		if (!result) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+		return result as unknown as MyProfile;
     }
+
+    public async updateMember(memberId: ObjectId, input: MyProfileUpdate): Promise<MyProfile> {
+		const set: T = {};
+		const unset: T = {};
+		const nonClearable = ['memberPhone', 'memberNick'] as const;
+		const clearable = ['memberFullName', 'memberImage', 'memberAddress', 'memberDesc'] as const;
+
+		for (const field of nonClearable) {
+			if (!Object.prototype.hasOwnProperty.call(input, field)) continue;
+			const value = input[field];
+			if (value === null || value === undefined || value === '') {
+				throw new BadRequestException(Message.BAD_REQUEST);
+			}
+			set[field] = value;
+		}
+		for (const field of clearable) {
+			if (!Object.prototype.hasOwnProperty.call(input, field)) continue;
+			const value = input[field];
+			if (value === null) unset[field] = 1;
+			else if (value !== undefined) set[field] = value;
+		}
+
+		await this.ensureUniqueProfileFields(memberId, set.memberNick, set.memberPhone);
+		const update: T = {};
+		if (Object.keys(set).length) update.$set = set;
+		if (Object.keys(unset).length) update.$unset = unset;
+		if (!Object.keys(update).length) return this.getMyProfile(memberId);
+
+		try {
+			const result = await this.memberModel
+				.findOneAndUpdate({ _id: memberId, memberStatus: MemberStatus.ACTIVE }, update, { new: true })
+				.select(this.myProfileProjection())
+				.lean()
+				.exec();
+			if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
+			return result as unknown as MyProfile;
+		} catch (error) {
+			if ((error as { code?: number }).code === 11000) {
+				throw new BadRequestException(Message.USED_MEMBERNICK_OR_PHONE);
+			}
+			throw error;
+		}
+    }
+
+	public async changeMyPassword(memberId: ObjectId, input: ChangeMyPasswordInput): Promise<boolean> {
+		const member = await this.memberModel
+			.findOne({ _id: memberId, memberStatus: MemberStatus.ACTIVE })
+			.select('+memberPassword')
+			.exec();
+		if (!member?.memberPassword) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+		const matches = await this.authService.comparePasswords(input.currentPassword, member.memberPassword);
+		if (!matches) throw new BadRequestException(Message.WRONG_PASSWORD);
+		member.memberPassword = await this.authService.hashPassword(input.newPassword);
+		await member.save();
+		return true;
+	}
 
 //getMember 
    public async getMember(memberId: ObjectId  | null, targetId: ObjectId): Promise<Member> {
@@ -236,12 +293,50 @@ public async likeTargetMember(memberId: ObjectId, likeRefId: ObjectId): Promise<
 
 
 
-	public async memberStatsEditor(input: StatisticModifier): Promise<Member> {
+	public async memberStatsEditor(input: StatisticModifier, session?: ClientSession): Promise<Member> {
 		//memberga dahldor kerakli qiymatni ozgartirish imkonini beruvchi method
 		const { _id, targetKey, modifier } = input;
-		return (await this.memberModel
-			.findOneAndUpdate({ _id }, { $inc: { [targetKey]: modifier } }, { new: true })
-			.exec()) as Member;
+		const update = modifier < 0
+			? [{ $set: { [targetKey]: { $max: [0, { $add: [{ $ifNull: [`$${targetKey}`, 0] }, modifier] }] } } }]
+			: { $inc: { [targetKey]: modifier } };
+		const query = this.memberModel.findOneAndUpdate({ _id }, update, { new: true });
+		if (session) query.session(session);
+		const result = await query.exec();
+		if (!result) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+		return result as Member;
+	}
+
+	private myProfileProjection(): T {
+		return {
+			_id: 1,
+			memberType: 1,
+			memberAuthType: 1,
+			memberPhone: 1,
+			memberNick: 1,
+			memberFullName: 1,
+			memberImage: 1,
+			memberAddress: 1,
+			memberDesc: 1,
+			memberProducts: 1,
+			memberArticles: 1,
+			memberFollowers: 1,
+			memberFollowings: 1,
+			createdAt: 1,
+			updatedAt: 1,
+		};
+	}
+
+	private async ensureUniqueProfileFields(
+		memberId: ObjectId,
+		memberNick?: string,
+		memberPhone?: string,
+	): Promise<void> {
+		const alternatives: T[] = [];
+		if (memberNick) alternatives.push({ memberNick });
+		if (memberPhone) alternatives.push({ memberPhone });
+		if (!alternatives.length) return;
+		const duplicate = await this.memberModel.exists({ _id: { $ne: memberId }, $or: alternatives });
+		if (duplicate) throw new BadRequestException(Message.USED_MEMBERNICK_OR_PHONE);
 	}
 
 

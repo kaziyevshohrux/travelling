@@ -77,6 +77,26 @@ Completed on October 7, 2026:
 - `npm run build`: still blocked by the same six documented Comment/Socket baseline errors.
 - Auto-fixing lint: not run, by repository instruction.
 
+## AGENT Product Management Frontend
+
+Completed on October 8, 2026:
+
+- Reworked the private AGENT catalogue into a responsive Product dashboard with supported status filters, sorting, pagination, owner actions, and real loading, empty, error, and retry states.
+- Replaced the legacy addProperty presentation with Add travel offer and Edit travel offer flows while retaining `propertyId` route compatibility.
+- Added backend-aligned Product categories, family and guest policies, child-age limits, type-specific JSON details, image preservation/removal, and HOTEL/TOUR/ACTIVITY/TRANSFER availability editing.
+- Kept Product creation/update separate from availability persistence and added an explicit retry path when the second mutation fails, preventing duplicate Product creation.
+- Preserved AGENT authorization, owner-scoped GraphQL operations, Apollo integration, configured upload endpoints, and public-profile published-only cards.
+- Removed the mobile My Page and My Menu placeholders and added responsive desktop, tablet, and mobile layouts with keyboard focus and reduced-motion support.
+
+### AGENT Frontend Validation
+
+- `yarn tsc --noEmit --incremental false`: passed.
+- `yarn build`: passed; 73 static pages generated.
+- `yarn lint`: blocked because the repository has no ESLint configuration and `next lint` opens the interactive setup prompt; no configuration was created.
+- `git diff --check`: passed (line-ending conversion warnings only).
+- Browser automation: unavailable in the current session because no browser provider was exposed.
+- Authenticated create/edit/status/delete, upload, and availability mutations were not submitted against live data because no test credentials or authorized demo-data creation were provided.
+
 ## Product API Audit, Availability, and Quotes
 
 Completed on October 7, 2026:
@@ -96,4 +116,27 @@ Completed on October 7, 2026:
 - `npx tsc -p apps/travelling-api/tsconfig.app.json --noEmit`: no Product/availability/quote errors; blocked only by the same six documented Comment/Socket baseline errors.
 - `npm run build`: blocked only by the same six documented Comment/Socket baseline errors.
 - `git diff --check`: passed.
+- Auto-fixing lint: not run, by repository instruction.
+
+## Follow and Current-profile API Audit
+
+Completed on October 8, 2026:
+
+- Audited the actual Follow and Member GraphQL operations, DTOs, schemas, aggregations, counters, interaction lookups, ADMIN boundaries, and the accessible `travelling-next` consumers; recorded the impact map in `FOLLOW_PROFILE_API_AUDIT.md`.
+- Corrected follower/following join direction, moved eligible-member filtering before pagination/counting, added deterministic `_id` tie-break sorting, and retained set-based authenticated-viewer state.
+- Added query indexes while retaining the existing unique follow-pair index, self-follow prevention, and conditional unfollow behavior.
+- Made follow creation/deletion and both denormalized member counter updates transactional, with non-negative decrements.
+- Added safe authenticated `getMyProfile`, tightened the existing `updateMember` operation to a self-service allowlist, and added current-password-verified `changeMyPassword`.
+- Updated `MyMenu`, `MyProfile`, frontend GraphQL documents, and TypeScript types without creating a separate menu API.
+- Did not run a database migration, index synchronization, duplicate cleanup, or counter rewrite.
+
+### Follow/Profile Validation
+
+- Full Jest suite: passed, 12 suites and 47 tests.
+- Focused Follow/Profile suites: passed, 3 suites and 14 tests.
+- Frontend `yarn tsc --noEmit`: passed.
+- Frontend `yarn build`: passed.
+- `npx tsc -p apps/travelling-batch/tsconfig.app.json --noEmit`: passed.
+- `npx tsc -p apps/travelling-api/tsconfig.app.json --noEmit`: changed code is clean; blocked only by the six documented Comment/Socket baseline errors.
+- `npm run build`: blocked only by those same six unrelated baseline errors.
 - Auto-fixing lint: not run, by repository instruction.

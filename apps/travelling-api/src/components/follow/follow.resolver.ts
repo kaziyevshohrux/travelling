@@ -35,7 +35,7 @@ export class FollowResolver {
 	@Query(() => Followings)
 	public async getMemberFollowings(
 		@Args('input') input: FollowInquiry,
-		@AuthMember('_id') memberId: mongoose.ObjectId,
+		@AuthMember('_id') memberId: mongoose.ObjectId | null,
 	): Promise<Followings> {
 		console.log('Query: getMemberfollowings');
 		const { followerId } = input.search;
@@ -48,7 +48,7 @@ export class FollowResolver {
 	@Query(() => Followers)
 	public async getMemberFollowers(
 		@Args('input') input: FollowInquiry,
-		@AuthMember('_id') memberId: mongoose.ObjectId,
+		@AuthMember('_id') memberId: mongoose.ObjectId | null,
 	): Promise<Followers> {
 		console.log('Query: getMemberFollowers');
 		const { followingId } = input.search;

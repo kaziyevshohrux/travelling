@@ -2,13 +2,13 @@ import { Mutation, Resolver , Query, Args } from '@nestjs/graphql';
 import { MemberService } from './member.service';
 import { InternalServerErrorException, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AgentInquiry, LoginInput, MemberInput, MembersInquiry } from '../../libs/dto/member/member.input';
-import { Member, Members } from '../../libs/dto/member/member';
+import { Member, Members, MyProfile } from '../../libs/dto/member/member';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
-import { MemberUpdate } from '../../libs/dto/member/member.update';
+import { ChangeMyPasswordInput, MemberUpdate, MyProfileUpdate } from '../../libs/dto/member/member.update';
 import * as mongoose from 'mongoose';
 import { getSerialForImage, shapeIntoMongoObjectId, validMimeTypes } from '../../libs/config';
 import { WithoutGuard } from '../auth/guards/without.guard';
@@ -56,18 +56,32 @@ export class MemberResolver {
 	}
 
 
+    @UseGuards(AuthGuard)
+    @Query(() => MyProfile)
+    public async getMyProfile(@AuthMember('_id') memberId: mongoose.ObjectId): Promise<MyProfile> {
+        return this.memberService.getMyProfile(memberId);
+    }
+
 //update member 
       @UseGuards(AuthGuard)
-      @Mutation(() => Member)
+      @Mutation(() => MyProfile)
     public async updateMember(
-      @Args('input') input : MemberUpdate,
-     @AuthMember('_id') memberId: mongoose.ObjectId ,): Promise<Member> {
+      @Args('input') input : MyProfileUpdate,
+     @AuthMember('_id') memberId: mongoose.ObjectId ,): Promise<MyProfile> {
         console.log("updateMember")
-        delete input._id
             return await this.memberService.updateMember(memberId, input)
         
     }
 
+
+    @UseGuards(AuthGuard)
+    @Mutation(() => Boolean)
+    public async changeMyPassword(
+      @Args('input') input: ChangeMyPasswordInput,
+      @AuthMember('_id') memberId: mongoose.ObjectId,
+    ): Promise<boolean> {
+      return this.memberService.changeMyPassword(memberId, input);
+    }
 
 //get Member 
       @UseGuards(WithoutGuard)

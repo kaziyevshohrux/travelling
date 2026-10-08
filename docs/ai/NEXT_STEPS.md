@@ -25,3 +25,12 @@ Regenerate frontend GraphQL types for the additive travel-search fields and enum
 - Fix the three pre-existing socket member-nullability errors.
 - Re-run API typecheck and `npm run build` after that cleanup.
 - Handle broad lint/style cleanup separately; do not mix it into the product migration.
+
+## Follow/Profile Deployment
+
+1. Confirm MongoDB transaction support (replica set or sharded cluster) before deploying transactional subscribe/unsubscribe.
+2. Back up the database; inspect follow-pair duplicates and dangling member references without deleting data automatically.
+3. Review and create the two follow query indexes described in `FOLLOW_PROFILE_API_AUDIT.md` if production disables automatic index creation.
+4. Reconcile member follow counters from the follow collection in a reviewed migration, including members whose expected count is zero.
+5. Deploy the tightened `updateMember` frontend and backend contracts together, then smoke-test profile edit, password change, follow/unfollow, anonymous lists, and authenticated viewer state.
+6. Consider minimizing general JWT claims in a separate authentication-focused change; current profile/menu data no longer depends on those claims.

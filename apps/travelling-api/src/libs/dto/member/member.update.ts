@@ -52,3 +52,44 @@ export class MemberUpdate {
     
     deletedAt?: Date;
 }
+
+@InputType()
+export class MyProfileUpdate {
+    @IsOptional()
+    @Field(() => String, { nullable: true })
+    memberPhone?: string | null;
+
+    @IsOptional()
+    @Length(3, 12)
+    @Field(() => String, { nullable: true })
+    memberNick?: string | null;
+
+    @IsOptional()
+    @Length(3, 100)
+    @Field(() => String, { nullable: true })
+    memberFullName?: string | null;
+
+    @IsOptional()
+    @Field(() => String, { nullable: true })
+    memberImage?: string | null;
+
+    @IsOptional()
+    @Field(() => String, { nullable: true })
+    memberAddress?: string | null;
+
+    @IsOptional()
+    @Field(() => String, { nullable: true })
+    memberDesc?: string | null;
+}
+
+@InputType()
+export class ChangeMyPasswordInput {
+    @IsNotEmpty()
+    @Field(() => String)
+    currentPassword: string;
+
+    @IsNotEmpty()
+    @Length(5, 12)
+    @Field(() => String)
+    newPassword: string;
+}

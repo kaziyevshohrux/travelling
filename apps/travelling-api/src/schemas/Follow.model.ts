@@ -16,5 +16,7 @@ const FollowSchema = new Schema(
 );
 
 FollowSchema.index({ followingId: 1, followerId: 1 }, { unique: true });
+FollowSchema.index({ followerId: 1, createdAt: -1, _id: -1 });
+FollowSchema.index({ followingId: 1, createdAt: -1, _id: -1 });
 
 export default FollowSchema;

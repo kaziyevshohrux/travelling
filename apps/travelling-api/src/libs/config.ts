@@ -70,7 +70,7 @@ return {
 };
 
 interface LookupAuthMemberFollwed  {
-	followerId : T,
+	followerId: unknown,
 	followingId: string
 
 }

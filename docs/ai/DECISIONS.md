@@ -18,6 +18,11 @@
 | Include the target group in like/view uniqueness. | Identical ObjectIds in different target domains must not collide. |
 | Preserve batch schedules and rank formulas. | The domain rename should not change existing ranking behavior. |
 | Do not run the auto-fixing lint script. | It would rewrite unrelated files and obscure the migration diff. |
+| Use the follow collection as relationship truth and member counters as denormalized statistics. | List correctness must not depend on potentially stale counters; counters can be reconciled explicitly. |
+| Make follow record and counter changes transactional. | Unique writes alone prevent duplicate relationships but do not prevent partial counter drift. |
+| Preserve ACTIVE/BLOCK member visibility in follow lists. | This matches existing public member lookup behavior while excluding DELETE and missing joins consistently. |
+| Add `getMyProfile` and retain `updateMember` with a safe input. | Current-account identity must come from authentication; the established mutation name can remain while privilege-bearing fields are removed from self-service input. |
+| Do not add a separate my-menu API. | The safe current-profile query already contains every field consumed by the menu and avoids duplicate contracts. |
 
 ## Rejected Alternatives
 
